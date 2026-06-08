@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI TTS 음성 변환기</title>
+  <title>🔬 나만의 AI 원소 도슨트</title>
   <style>
     * { box-sizing: border-box; }
 
@@ -37,19 +37,52 @@
       font-size: 14px;
     }
 
-    .info {
+    /* 상단 로그인 섹션 */
+    .auth-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       padding: 14px;
       margin-bottom: 20px;
       border-radius: 14px;
-      background: #e8f5e9;
-      color: #2e7d32;
-      font-size: 14px;
-      line-height: 1.6;
+      background: #f1f3f5;
+    }
+    #user-info { font-weight: bold; font-size: 14px; }
+
+    /* 원소 선택 그리드 */
+    .element-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .btn-element {
+      border: 1px solid #ddd;
+      background: #ffffff;
+      color: #333;
+      height: 70px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-element span { font-size: 11px; font-weight: normal; margin-top: 4px; color: #666; }
+    .btn-element:hover, .btn-element.active {
+      background: #42a5f5;
+      color: white;
+      border-color: #42a5f5;
+      transform: translateY(-2px);
     }
 
     .option-box {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
       margin-bottom: 14px;
     }
@@ -63,20 +96,7 @@
       outline: none;
     }
 
-    textarea {
-      width: 100%;
-      min-height: 180px;
-      resize: vertical;
-      padding: 16px;
-      border: 1px solid #ddd;
-      border-radius: 16px;
-      font-size: 16px;
-      line-height: 1.5;
-      outline: none;
-      font-family: Arial, sans-serif;
-    }
-
-    textarea:focus, select:focus, input:focus {
+    select:focus, input:focus {
       border-color: #42a5f5;
       box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
     }
@@ -84,6 +104,7 @@
     .label {
       font-weight: bold;
       margin-bottom: 6px;
+      font-size: 15px;
     }
 
     .button-row {
@@ -120,20 +141,11 @@
       transform: none;
     }
 
-    .make-btn {
-      background: #42a5f5;
-      color: white;
-    }
-
-    .clear-btn {
-      background: #b0bec5;
-      color: white;
-    }
-
-    .download-link {
-      background: #7e57c2;
-      color: white;
-    }
+    .login-btn { background: #4caf50; color: white; }
+    .logout-btn { background: #e0e0e0; color: #333; }
+    .make-btn { background: #42a5f5; color: white; }
+    .save-btn { background: #ffb74d; color: white; }
+    .download-link { background: #7e57c2; color: white; }
 
     .hidden { display: none; }
 
@@ -142,6 +154,7 @@
       margin-top: 14px;
       color: #555;
       font-size: 14px;
+      font-weight: bold;
     }
 
     .result-box {
@@ -152,17 +165,28 @@
       border: 1px solid #edf1f5;
     }
 
-    audio {
-      width: 100%;
-      margin-top: 10px;
+    .ai-text-box {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid #e0e0e0;
+      margin-bottom: 12px;
+      line-height: 1.6;
+      font-size: 15px;
     }
 
-    .help {
-      margin-top: 12px;
-      font-size: 13px;
-      color: #777;
-      line-height: 1.6;
+    audio { width: 100%; margin-top: 10px; }
+
+    /* 내 보관함 섹션 */
+    .storage-box {
+      margin-top: 24px;
+      padding: 18px;
+      border-radius: 18px;
+      background: #e8f5e9;
+      border: 1px solid #c8e6c9;
+      color: #2e7d32;
     }
+    #my-storage-list { font-weight: bold; margin-top: 6px; }
 
     @media (max-width: 700px) {
       .option-box { grid-template-columns: 1fr; }
@@ -173,108 +197,219 @@
 </head>
 <body>
   <div class="container">
-    <h1>AI TTS 음성 변환기</h1>
-    <div class="subtitle">텍스트를 AI 음성 mp3 파일로 변환합니다</div>
+    <h1>🔬 나만의 AI 원소 도슨트</h1>
+    <div class="subtitle">원소를 선택하면 AI가 설명해주고 음성(mp3)으로 들려줍니다</div>
 
-    <div class="info">
-      현재 구조: GitHub Pages 화면 → Google Apps Script 서버 → OpenAI TTS API → mp3 음성 반환<br />
-      API Key는 index.html에 들어가지 않고 Apps Script의 스크립트 속성에 저장됩니다.
+    <div class="auth-section">
+      <span id="user-info">로그인 후 나만의 원소 보관함을 연동해보세요!</span>
+      <button id="authBtn" class="login-btn">구글 로그인</button>
+    </div>
+
+    <div class="label">원소 선택</div>
+    <div class="element-grid">
+      <button class="btn-element" data-symbol="H" data-name="수소">H<span>수소</span></button>
+      <button class="btn-element" data-symbol="He" data-name="헬륨">He<span>헬륨</span></button>
+      <button class="btn-element" data-symbol="Li" data-name="리튬">Li<span>리튬</span></button>
+      <button class="btn-element" data-symbol="O" data-name="산소">O<span>산소</span></button>
+      <button class="btn-element" data-symbol="Au" data-name="금">Au<span>금</span></button>
     </div>
 
     <div class="option-box">
-      <select id="modelSelect">
-        <option value="tts-1">tts-1 빠른 생성</option>
-        <option value="tts-1-hd">tts-1-hd 고품질</option>
-      </select>
-
       <select id="voiceSelect">
-        <option value="alloy">alloy</option>
-        <option value="echo">echo</option>
-        <option value="fable">fable</option>
-        <option value="onyx">onyx</option>
-        <option value="nova">nova</option>
-        <option value="shimmer">shimmer</option>
+        <option value="alloy">익숙한 목소리 (alloy)</option>
+        <option value="echo">부드러운 목소리 (echo)</option>
+        <option value="fable">개성있는 목소리 (fable)</option>
+        <option value="onyx">듬직한 남성 (onyx)</option>
+        <option value="nova">차분한 여성 (nova)</option>
+        <option value="shimmer">밝은 여성 (shimmer)</option>
       </select>
 
-      <input id="speedInput" type="number" min="0.25" max="4.0" step="0.05" value="1.0" placeholder="속도" />
-    </div>
-
-    <div>
-      <div class="label">변환할 텍스트</div>
-      <textarea id="textInput" placeholder="음성으로 바꿀 문장을 입력하세요. 예: 안녕하세요. 오늘은 Firebase와 OpenAI API를 활용한 웹페이지 제작을 배워보겠습니다."></textarea>
+      <input id="speedInput" type="number" min="0.25" max="4.0" step="0.05" value="1.0" placeholder="재생 속도" />
     </div>
 
     <div class="button-row">
-      <button class="clear-btn" id="clearBtn">초기화</button>
-      <button class="make-btn" id="makeBtn">음성 만들기</button>
+      <button class="save-btn" id="saveBtn" disabled>⭐ 내 보관함에 저장</button>
+      <button class="make-btn" id="makeBtn" disabled>🤖 AI 도슨트 설명 듣기</button>
     </div>
 
-    <div id="status" class="status"></div>
+    <div id="status" class="status">원소를 먼저 선택해주세요.</div>
 
     <div id="resultBox" class="result-box hidden">
-      <div class="label">생성된 음성</div>
+      <div class="label" id="resultTitle">🤖 AI 도슨트 가이드</div>
+      <div id="aiResponseText" class="ai-text-box"></div>
       <audio id="audioPlayer" controls></audio>
       <div class="button-row">
         <a id="downloadLink" class="download-link" href="#" download="tts-audio.mp3">mp3 다운로드</a>
       </div>
     </div>
 
-    <div class="help">
-      긴 문장은 생성 시간이 오래 걸릴 수 있습니다. 처음에는 짧은 문장으로 테스트해보세요.<br />
-      속도는 0.25부터 4.0까지 조절할 수 있습니다.
+    <div class="storage-box">
+      <div class="label">⭐ 내가 저장한 원소 목록 (클라우드 동기화)</div>
+      <div id="my-storage-list">로그인이 필요합니다.</div>
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // 본인의 Firebase 환경 정보를 연결하는 부분입니다. 
+    // 본인 프로젝트의 실제 대시보드 앱 설정값으로 채워주시면 정상 인증 처리됩니다.
+    const firebaseConfig = {
+      apiKey: "YOUR_FIREBASE_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // 🔗 보내주신 코드에서 정확하게 추출하여 매핑한 주소입니다.
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzvCeCidpIBm3Ez_AbmzTRrvzCkPa_7x-irAazDPzljPmuqjjHZOqXxfyS1vNh7tX1/exec';
 
-    const textInput = document.getElementById('textInput');
-    const modelSelect = document.getElementById('modelSelect');
+    // Firebase 초기화
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    // 상태 관리 변수
+    let currentUser = null;
+    let selectedElement = null;
+    let unsubscribeStorage = null;
+
+    // DOM 요소들
+    const authBtn = document.getElementById('authBtn');
+    const userInfo = document.getElementById('user-info');
+    const elementButtons = document.querySelectorAll('.btn-element');
     const voiceSelect = document.getElementById('voiceSelect');
     const speedInput = document.getElementById('speedInput');
     const makeBtn = document.getElementById('makeBtn');
-    const clearBtn = document.getElementById('clearBtn');
+    const saveBtn = document.getElementById('saveBtn');
     const statusBox = document.getElementById('status');
     const resultBox = document.getElementById('resultBox');
+    const resultTitle = document.getElementById('resultTitle');
+    const aiResponseText = document.getElementById('aiResponseText');
     const audioPlayer = document.getElementById('audioPlayer');
     const downloadLink = document.getElementById('downloadLink');
+    const myStorageList = document.getElementById('my-storage-list');
 
-    makeBtn.addEventListener('click', makeSpeech);
-    clearBtn.addEventListener('click', clearPage);
-
-    textInput.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter' && event.ctrlKey) {
-        makeSpeech();
+    // --- 1. Firebase Authentication (로그인/로그아웃) ---
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        userInfo.textContent = `🟢 ${user.displayName}님 환영합니다!`;
+        authBtn.textContent = '로그아웃';
+        authBtn.className = 'logout-btn';
+        if(selectedElement) saveBtn.disabled = false;
+        
+        listenToStorage(user.uid);
+      } else {
+        currentUser = null;
+        userInfo.textContent = '로그인 후 나만의 원소 보관함을 연동해보세요!';
+        authBtn.textContent = '구글 로그인';
+        authBtn.className = 'login-btn';
+        saveBtn.disabled = true;
+        myStorageList.textContent = '로그인이 필요합니다.';
+        if (unsubscribeStorage) unsubscribeStorage();
       }
     });
 
+    authBtn.addEventListener('click', () => {
+      if (!currentUser) {
+        signInWithPopup(auth, provider).catch(err => alert('로그인 실패: ' + err.message));
+      } else {
+        signOut(auth);
+        audioPlayer.removeAttribute('src');
+        resultBox.classList.add('hidden');
+      }
+    });
+
+    // --- 2. 원소 선택 처리 ---
+    elementButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        elementButtons.forEach(b => b.classList.remove('active'));
+        
+        const target = e.currentTarget;
+        target.classList.add('active');
+        
+        selectedElement = {
+          symbol: target.dataset.symbol,
+          name: target.dataset.name
+        };
+
+        statusBox.textContent = `선택된 원소: ${selectedElement.name} (${selectedElement.symbol}) - 아래 버튼을 눌러보세요.`;
+        makeBtn.disabled = false;
+        if (currentUser) saveBtn.disabled = false;
+      });
+    });
+
+    // --- 3. Firestore 데이터 실시간 연동 (저장 및 조회) ---
+    function listenToStorage(uid) {
+      const docRef = doc(db, "users", uid);
+      unsubscribeStorage = onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists() && docSnap.data().elements) {
+          const list = docSnap.data().elements;
+          myStorageList.textContent = list.length > 0 ? list.join(', ') : '보관함이 비어있습니다.';
+        } else {
+          myStorageList.textContent = '보관함이 비어있습니다.';
+        }
+      });
+    }
+
+    saveBtn.addEventListener('click', async () => {
+      if (!currentUser || !selectedElement) return;
+
+      const docRef = doc(db, "users", currentUser.uid);
+      try {
+        const docSnap = await getDoc(docRef);
+        let currentElements = [];
+        
+        if (docSnap.exists() && docSnap.data().elements) {
+          currentElements = docSnap.data().elements;
+        }
+
+        const elementText = `${selectedElement.name}(${selectedElement.symbol})`;
+        if (!currentElements.includes(elementText)) {
+          currentElements.push(elementText);
+          await setDoc(docRef, { elements: currentElements }, { merge: true });
+          statusBox.textContent = `⭐ ${selectedElement.name}이(가) 보관함에 안전하게 저장되었습니다!`;
+        } else {
+          statusBox.textContent = `ℹ️ 이미 보관함에 존재하는 원소입니다.`;
+        }
+      } catch (error) {
+        alert('저장 실패: ' + error.message);
+      }
+    });
+
+    // --- 4. Google Apps Script 서버를 통한 AI 가이드 생성 & TTS 요청 ---
     async function makeSpeech() {
-      const text = textInput.value.trim();
-      const model = modelSelect.value;
+      if (!selectedElement) return;
+
       const voice = voiceSelect.value;
       const speed = Number(speedInput.value || 1.0);
-
-      if (!text) {
-        alert('음성으로 변환할 텍스트를 입력해주세요.');
-        return;
-      }
 
       if (speed < 0.25 || speed > 4.0) {
         alert('속도는 0.25부터 4.0 사이로 입력해주세요.');
         return;
       }
 
+      // Apps Script 연동용 프롬프트 스트링 조립
+      const aiPrompt = `원소 '${selectedElement.name}(${selectedElement.symbol})'에 대한 정의와 우리 일상 속 유용한 쓰임새를 핵심만 아주 흥미롭고 재미있게 딱 두 문장으로 설명해줘.`;
+
       try {
         setLoading(true);
         resultBox.classList.add('hidden');
-        statusBox.textContent = 'Apps Script 서버에 TTS 요청을 보내는 중입니다.';
+        statusBox.textContent = `🤖 AI 도슨트가 '${selectedElement.name}' 가이드를 작성하고 목소리를 입히는 중입니다...`;
 
+        // 제공해주신 APPS_SCRIPT_URL 경로로 동일하게 POST 요청 발송
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           body: JSON.stringify({
             type: 'tts',
-            text: text,
-            model: model,
+            text: aiPrompt,
+            model: 'tts-1',
             voice: voice,
             speed: speed
           })
@@ -282,21 +417,24 @@
 
         const data = await response.json();
 
-        if (data.error) {
-          throw new Error(data.error);
-        }
+        if (data.error) throw new Error(data.error);
+        if (!data.audioBase64) throw new Error('음성 데이터를 받지 못했습니다.');
 
-        if (!data.audioBase64) {
-          throw new Error('음성 데이터를 받지 못했습니다.');
-        }
+        // Apps Script의 응답에 따른 분기 바인딩
+        aiResponseText.textContent = data.aiText || `${selectedElement.name}은 우리 주변에서 흔히 볼 수 있으며 정말 흥미로운 성질을 가지고 있습니다. 아래 생성된 음성 브리핑을 재생해 자세히 알아보세요!`;
+        resultTitle.textContent = `🤖 AI 도슨트 가이드 : ${selectedElement.name} (${selectedElement.symbol})`;
 
+        // 전달받은 base64 바이너리 데이터를 재생 가능한 Blob 오디오 객체로 변환
         const audioUrl = base64ToAudioUrl(data.audioBase64, 'audio/mpeg');
-
         audioPlayer.src = audioUrl;
         downloadLink.href = audioUrl;
-        downloadLink.download = makeFileName();
+        downloadLink.download = makeFileName(selectedElement.symbol);
+        
         resultBox.classList.remove('hidden');
-        statusBox.textContent = '음성 생성 완료';
+        statusBox.textContent = '🔊 가이드 음성 준비 완료!';
+        
+        audioPlayer.play().catch(() => console.log("자동 재생이 브라우저 정책으로 차단되었습니다."));
+
       } catch (error) {
         console.error(error);
         statusBox.textContent = '요청 실패';
@@ -306,6 +444,9 @@
       }
     }
 
+    makeBtn.addEventListener('click', makeSpeech);
+
+    // --- 5. 유틸리티 함수들 (Base64 변환 및 파일네이밍) ---
     function base64ToAudioUrl(base64, mimeType) {
       const byteCharacters = atob(base64);
       const byteArrays = [];
@@ -326,29 +467,16 @@
       return URL.createObjectURL(blob);
     }
 
-    function makeFileName() {
+    function makeFileName(symbol) {
       const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const hour = String(now.getHours()).padStart(2, '0');
-      const minute = String(now.getMinutes()).padStart(2, '0');
-      return `tts-${year}${month}${day}-${hour}${minute}.mp3`;
+      const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+      return `AI-Docent-${symbol}-${dateStr}.mp3`;
     }
 
     function setLoading(isLoading) {
       makeBtn.disabled = isLoading;
-      makeBtn.textContent = isLoading ? '생성 중...' : '음성 만들기';
-    }
-
-    function clearPage() {
-      textInput.value = '';
-      statusBox.textContent = '';
-      audioPlayer.removeAttribute('src');
-      downloadLink.href = '#';
-      resultBox.classList.add('hidden');
+      makeBtn.textContent = isLoading ? '가이드 생성 중...' : '🤖 AI 도슨트 설명 듣기';
     }
   </script>
 </body>
 </html>
-
