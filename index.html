@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🔬 나만의 AI 원소 도슨트</title>
+  <title>🔬 나만의 AI 원소 도슨트 (이메일 로그인)</title>
   <style>
     * { box-sizing: border-box; }
 
@@ -37,15 +37,27 @@
       font-size: 14px;
     }
 
-    /* 상단 로그인 섹션 */
+    /* 상단 로그인 섹션 고도화 */
     .auth-section {
+      background: #f1f3f5;
+      padding: 18px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+    }
+    
+    .auth-inputs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .auth-inputs input { flex: 1; min-width: 150px; }
+
+    .auth-status-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px;
-      margin-bottom: 20px;
-      border-radius: 14px;
-      background: #f1f3f5;
+      margin-top: 5px;
     }
     #user-info { font-weight: bold; font-size: 14px; }
 
@@ -142,6 +154,7 @@
     }
 
     .login-btn { background: #4caf50; color: white; }
+    .register-btn { background: #00bcd4; color: white; }
     .logout-btn { background: #e0e0e0; color: #333; }
     .make-btn { background: #42a5f5; color: white; }
     .save-btn { background: #ffb74d; color: white; }
@@ -177,7 +190,6 @@
 
     audio { width: 100%; margin-top: 10px; }
 
-    /* 내 보관함 섹션 */
     .storage-box {
       margin-top: 24px;
       padding: 18px;
@@ -201,8 +213,17 @@
     <div class="subtitle">원소를 선택하면 AI가 설명해주고 음성(mp3)으로 들려줍니다</div>
 
     <div class="auth-section">
-      <span id="user-info">로그인 후 나만의 원소 보관함을 연동해보세요!</span>
-      <button id="authBtn" class="login-btn">구글 로그인</button>
+      <div id="auth-inputs-div" class="auth-inputs">
+        <input type="email" id="emailInput" placeholder="이메일 주소 입력" />
+        <input type="password" id="passwordInput" placeholder="비밀번호 입력 (6자리 이상)" />
+        <button id="loginBtn" class="login-btn">로그인</button>
+        <button id="registerBtn" class="register-btn">회원가입</button>
+      </div>
+      
+      <div class="auth-status-bar">
+        <span id="user-info">로그인 후 나만의 원소 보관함을 연동해보세요!</span>
+        <button id="logoutBtn" class="logout-btn hidden">로그아웃</button>
+      </div>
     </div>
 
     <div class="label">원소 선택</div>
@@ -251,10 +272,11 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    // 🔗 구글 팝업 대신 이메일 가입/로그인 함수(createUserWithEmailAndPassword, signInWithEmailAndPassword) 임포트
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 🔗 전달해주신 bigdabun 프로젝트의 실제 키 값들을 그대로 연동했습니다.
+    // 🔗 bigdabun 프로젝트 환경 설정값 유지
     const firebaseConfig = {
       apiKey: "AIzaSyD5G_j3cOFmE0Dhaqp5LpDROFZ2O29a59g",
       authDomain: "bigdabun.firebaseapp.com",
@@ -266,14 +288,12 @@
       measurementId: "G-ZDQPP6TYTE"
     };
 
-    // 🔗 이전 코드에 담겨 있던 Apps Script 주소입니다.
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzvCeCidpIBm3Ez_AbmzTRrvzCkPa_7x-irAazDPzljPmuqjjHZOqXxfyS1vNh7tX1/exec';
 
     // Firebase 초기화
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
 
     // 상태 관리 변수
     let currentUser = null;
@@ -281,7 +301,13 @@
     let unsubscribeStorage = null;
 
     // DOM 요소들
-    const authBtn = document.getElementById('authBtn');
+    const authInputsDiv = document.getElementById('auth-inputs-div');
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    
     const userInfo = document.getElementById('user-info');
     const elementButtons = document.querySelectorAll('.btn-element');
     const voiceSelect = document.getElementById('voiceSelect');
@@ -296,41 +322,84 @@
     const downloadLink = document.getElementById('downloadLink');
     const myStorageList = document.getElementById('my-storage-list');
 
-    // --- 1. Firebase Authentication (로그인/로그아웃) ---
+    // --- 1. Firebase Authentication 상태 모니터링 ---
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
-        userInfo.textContent = `🟢 ${user.displayName}님 환영합니다!`;
-        authBtn.textContent = '로그아웃';
-        authBtn.className = 'logout-btn';
+        userInfo.textContent = `🟢 ${user.email} 계정으로 로그인됨`;
+        authInputsDiv.classList.add('hidden'); // 로그인 성공 시 입력창 숨김
+        logoutBtn.classList.remove('hidden');  // 로그아웃 버튼 보여줌
         if(selectedElement) saveBtn.disabled = false;
         
         listenToStorage(user.uid);
       } else {
         currentUser = null;
         userInfo.textContent = '로그인 후 나만의 원소 보관함을 연동해보세요!';
-        authBtn.textContent = '구글 로그인';
-        authBtn.className = 'login-btn';
+        authInputsDiv.classList.remove('hidden'); // 로그아웃 시 입력창 다시 보여줌
+        logoutBtn.classList.add('hidden');
         saveBtn.disabled = true;
         myStorageList.textContent = '로그인이 필요합니다.';
         if (unsubscribeStorage) unsubscribeStorage();
       }
     });
 
-    authBtn.addEventListener('click', () => {
-      if (!currentUser) {
-        signInWithPopup(auth, provider).catch(err => {
-          console.error(err);
-          alert('로그인 실패: ' + err.message + '\n\n※ 만약 에러가 난다면 Firebase 웹 콘솔에서 [Authentication] -> [Google 로그인] 기능이 활성화(Enable) 상태인지 꼭 확인해주세요!');
-        });
-      } else {
-        signOut(auth);
-        audioPlayer.removeAttribute('src');
-        resultBox.classList.add('hidden');
+    // --- 2. 이메일 회원가입 로직 ---
+    registerBtn.addEventListener('click', () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if(!email || !password) {
+        alert('이메일과 비밀번호를 모두 입력해 주세요.');
+        return;
       }
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          alert('회원가입 및 로그인에 성공했습니다!');
+          clearAuthInputs();
+        })
+        .catch((error) => {
+          console.error(error);
+          alert('회원가입 실패: ' + error.message + '\n\n※ Firebase 콘솔에서 이메일/비밀번호 로그인이 활성화되어 있는지 확인해 주세요.');
+        });
     });
 
-    // --- 2. 원소 선택 처리 ---
+    // --- 3. 이메일 로그인 로직 ---
+    loginBtn.addEventListener('click', () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if(!email || !password) {
+        alert('이메일과 비밀번호를 모두 입력해 주세요.');
+        return;
+      }
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          statusBox.textContent = '로그인 성공!';
+          clearAuthInputs();
+        })
+        .catch((error) => {
+          console.error(error);
+          alert('로그인 실패: 이메일 또는 비밀번호를 확인해 주세요.\n(' + error.message + ')');
+        });
+    });
+
+    // --- 4. 로그아웃 로직 ---
+    logoutBtn.addEventListener('click', () => {
+      signOut(auth).then(() => {
+        audioPlayer.removeAttribute('src');
+        resultBox.classList.add('hidden');
+        statusBox.textContent = '로그아웃 되었습니다.';
+      });
+    });
+
+    function clearAuthInputs() {
+      emailInput.value = '';
+      passwordInput.value = '';
+    }
+
+    // --- 5. 원소 선택 처리 ---
     elementButtons.forEach(btn => {
       btn.addEventListener('click', (e) => {
         elementButtons.forEach(b => b.classList.remove('active'));
@@ -349,7 +418,7 @@
       });
     });
 
-    // --- 3. Firestore 데이터 실시간 연동 (저장 및 조회) ---
+    // --- 6. Firestore 데이터 실시간 연동 (저장 및 조회) ---
     function listenToStorage(uid) {
       const docRef = doc(db, "users", uid);
       unsubscribeStorage = onSnapshot(docRef, (docSnap) => {
@@ -387,7 +456,7 @@
       }
     });
 
-    // --- 4. Google Apps Script 서버를 통한 AI 가이드 생성 & TTS 요청 ---
+    // --- 7. Google Apps Script 서버를 통한 AI 가이드 생성 & TTS 요청 ---
     async function makeSpeech() {
       if (!selectedElement) return;
 
@@ -446,7 +515,7 @@
 
     makeBtn.addEventListener('click', makeSpeech);
 
-    // --- 5. 유틸리티 함수들 (Base64 변환 및 파일네이밍) ---
+    // --- 8. 유틸리티 함수들 ---
     function base64ToAudioUrl(base64, mimeType) {
       const byteCharacters = atob(base64);
       const byteArrays = [];
