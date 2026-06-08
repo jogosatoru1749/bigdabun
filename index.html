@@ -3,218 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🔬 나만의 AI 원소 도슨트 (이메일 전용)</title>
+  <title>🔬 나만의 AI 원소 도슨트 (Realtime DB 버전)</title>
   <style>
     * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #e3f2fd, #fce4ec);
-      font-family: Arial, sans-serif;
-      color: #333;
-    }
-
-    .container {
-      width: min(900px, 92%);
-      margin: 40px auto;
-      background: #ffffff;
-      border-radius: 24px;
-      padding: 28px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16);
-    }
-
-    h1 {
-      margin: 0 0 8px;
-      text-align: center;
-      font-size: 28px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #777;
-      margin-bottom: 24px;
-      font-size: 14px;
-    }
-
-    /* 상단 로그인 세션 */
-    .auth-section {
-      background: #f1f3f5;
-      padding: 18px;
-      border-radius: 14px;
-      margin-bottom: 20px;
-    }
-    
-    .auth-inputs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-    .auth-inputs input { 
-      flex: 1; 
-      min-width: 150px; 
-      height: 44px;
-      padding: 0 12px;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      font-size: 14px;
-      outline: none;
-    }
+    body { margin: 0; min-height: 100vh; background: linear-gradient(135deg, #e3f2fd, #fce4ec); font-family: Arial, sans-serif; color: #333; }
+    .container { width: min(900px, 92%); margin: 40px auto; background: #ffffff; border-radius: 24px; padding: 28px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16); }
+    h1 { margin: 0 0 8px; text-align: center; font-size: 28px; }
+    .subtitle { text-align: center; color: #777; margin-bottom: 24px; font-size: 14px; }
+    .auth-section { background: #f1f3f5; padding: 18px; border-radius: 14px; margin-bottom: 20px; }
+    .auth-inputs { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .auth-inputs input { flex: 1; min-width: 150px; height: 44px; padding: 0 12px; border: 1px solid #ddd; border-radius: 12px; font-size: 14px; outline: none; }
     .auth-inputs input:focus { border-color: #42a5f5; }
-
-    .auth-status-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 5px;
-    }
+    .auth-status-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
     #user-info { font-weight: bold; font-size: 14px; }
-
-    /* 원소 선택 그리드 */
-    .element-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .btn-element {
-      border: 1px solid #ddd;
-      background: #ffffff;
-      color: #333;
-      height: 70px;
-      font-size: 18px;
-      font-weight: bold;
-      border-radius: 14px;
-      cursor: pointer;
-      transition: 0.15s;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
+    .element-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .btn-element { border: 1px solid #ddd; background: #ffffff; color: #333; height: 70px; font-size: 18px; font-weight: bold; border-radius: 14px; cursor: pointer; transition: 0.15s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .btn-element span { font-size: 11px; font-weight: normal; margin-top: 4px; color: #666; }
-    .btn-element:hover, .btn-element.active {
-      background: #42a5f5;
-      color: white;
-      border-color: #42a5f5;
-      transform: translateY(-2px);
-    }
-
-    .option-box {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    select, input[type="number"] {
-      height: 44px;
-      padding: 0 12px;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      font-size: 14px;
-      outline: none;
-    }
-
-    select:focus, input[type="number"]:focus {
-      border-color: #42a5f5;
-      box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
-    }
-
-    .label {
-      font-weight: bold;
-      margin-bottom: 6px;
-      font-size: 15px;
-    }
-
-    .button-row {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
-
-    button, .download-link {
-      border: none;
-      border-radius: 12px;
-      padding: 0 18px;
-      height: 46px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: 0.15s;
-      font-weight: bold;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    button:hover, .download-link:hover {
-      transform: translateY(-2px);
-      opacity: 0.9;
-    }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
-      transform: none;
-    }
-
+    .btn-element:hover, .btn-element.active { background: #42a5f5; color: white; border-color: #42a5f5; transform: translateY(-2px); }
+    .option-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    select, input[type="number"] { height: 44px; padding: 0 12px; border: 1px solid #ddd; border-radius: 12px; font-size: 14px; outline: none; }
+    select:focus, input[type="number"]:focus { border-color: #42a5f5; box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15); }
+    .label { font-weight: bold; margin-bottom: 6px; font-size: 15px; }
+    .button-row { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 14px; }
+    button, .download-link { border: none; border-radius: 12px; padding: 0 18px; height: 46px; font-size: 15px; cursor: pointer; transition: 0.15s; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+    button:hover, .download-link:hover { transform: translateY(-2px); opacity: 0.9; }
+    button:disabled { cursor: not-allowed; opacity: 0.6; transform: none; }
     .login-btn { background: #4caf50; color: white; }
     .register-btn { background: #00bcd4; color: white; }
     .logout-btn { background: #e0e0e0; color: #333; }
     .make-btn { background: #42a5f5; color: white; }
     .save-btn { background: #ffb74d; color: white; }
     .download-link { background: #7e57c2; color: white; }
-
     .hidden { display: none; }
-
-    .status {
-      min-height: 24px;
-      margin-top: 14px;
-      color: #555;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .result-box {
-      margin-top: 20px;
-      padding: 18px;
-      border-radius: 18px;
-      background: #f7f9fb;
-      border: 1px solid #edf1f5;
-    }
-
-    .ai-text-box {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      border: 1px solid #e0e0e0;
-      margin-bottom: 12px;
-      line-height: 1.6;
-      font-size: 15px;
-    }
-
+    .status { min-height: 24px; margin-top: 14px; color: #555; font-size: 14px; font-weight: bold; }
+    .result-box { margin-top: 20px; padding: 18px; border-radius: 18px; background: #f7f9fb; border: 1px solid #edf1f5; }
+    .ai-text-box { background: white; padding: 15px; border-radius: 12px; border: 1px solid #e0e0e0; margin-bottom: 12px; line-height: 1.6; font-size: 15px; }
     audio { width: 100%; margin-top: 10px; }
-
-    .storage-box {
-      margin-top: 24px;
-      padding: 18px;
-      border-radius: 18px;
-      background: #e8f5e9;
-      border: 1px solid #c8e6c9;
-      color: #2e7d32;
-    }
+    .storage-box { margin-top: 24px; padding: 18px; border-radius: 18px; background: #e8f5e9; border: 1px solid #c8e6c9; color: #2e7d32; }
     #my-storage-list { font-weight: bold; margin-top: 6px; }
-
-    @media (max-width: 700px) {
-      .option-box { grid-template-columns: 1fr; }
-      .button-row { justify-content: stretch; }
-      button, .download-link { width: 100%; }
-    }
+    @media (max-width: 700px) { .option-box { grid-template-columns: 1fr; } .button-row { justify-content: stretch; } button, .download-link { width: 100%; } }
   </style>
 </head>
 <body>
@@ -229,7 +56,6 @@
         <button id="loginBtn" class="login-btn">로그인</button>
         <button id="registerBtn" class="register-btn">회원가입</button>
       </div>
-      
       <div class="auth-status-bar">
         <span id="user-info">로그인 후 나만의 원소 보관함을 연동해보세요!</span>
         <button id="logoutBtn" class="logout-btn hidden">로그아웃</button>
@@ -254,7 +80,6 @@
         <option value="nova">차분한 여성 (nova)</option>
         <option value="shimmer">밝은 여성 (shimmer)</option>
       </select>
-
       <input id="speedInput" type="number" min="0.25" max="4.0" step="0.05" value="1.0" placeholder="재생 속도" />
     </div>
 
@@ -283,9 +108,9 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    // 🔗 Realtime Database 모듈로 교체 및 바인딩
+    import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // bigdabun 프로젝트 환경 설정
     const firebaseConfig = {
       apiKey: "AIzaSyD5G_j3cOFmE0Dhaqp5LpDROFZ2O29a59g",
       authDomain: "bigdabun.firebaseapp.com",
@@ -299,24 +124,20 @@
 
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzvCeCidpIBm3Ez_AbmzTRrvzCkPa_7x-irAazDPzljPmuqjjHZOqXxfyS1vNh7tX1/exec';
 
-    // Firebase 초기화
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    const db = getDatabase(app); // Realtime DB 초기화
 
-    // 상태 관리 변수
     let currentUser = null;
     let selectedElement = null;
-    let unsubscribeStorage = null;
+    let dbRefInstance = null;
 
-    // DOM 요소들
     const authInputsDiv = document.getElementById('auth-inputs-div');
     const emailInput = document.getElementById('emailInput');
     const passwordInput = document.getElementById('passwordInput');
     const loginBtn = document.getElementById('loginBtn');
     const registerBtn = document.getElementById('registerBtn');
     const logoutBtn = document.getElementById('logoutBtn');
-    
     const userInfo = document.getElementById('user-info');
     const elementButtons = document.querySelectorAll('.btn-element');
     const voiceSelect = document.getElementById('voiceSelect');
@@ -331,7 +152,6 @@
     const downloadLink = document.getElementById('downloadLink');
     const myStorageList = document.getElementById('my-storage-list');
 
-    // --- 1. Firebase Authentication 상태 처리 ---
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
@@ -348,53 +168,29 @@
         logoutBtn.classList.add('hidden');
         saveBtn.disabled = true;
         myStorageList.textContent = '로그인이 필요합니다.';
-        if (unsubscribeStorage) unsubscribeStorage();
       }
     });
 
-    // --- 2. 이메일 회원가입 ---
     registerBtn.addEventListener('click', () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value;
-
-      if(!email || !password) {
-        alert('이메일과 비밀번호를 모두 입력해 주세요.');
-        return;
-      }
+      if(!email || !password) return alert('이메일과 비밀번호를 모두 입력해 주세요.');
 
       createUserWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          alert('회원가입 완료 및 로그인 성공!');
-          clearInputs();
-        })
-        .catch((error) => {
-          console.error(error);
-          alert('가입 실패! ' + error.message + '\n\n※ Firebase 웹 콘솔 내 Auth 메뉴에서 [이메일/비밀번호] 기능이 활성화 상태인지 확인해 주세요.');
-        });
+        .then(() => { alert('회원가입 완료 및 로그인 성공!'); clearInputs(); })
+        .catch((error) => alert('가입 실패! ' + error.message));
     });
 
-    // --- 3. 이메일 로그인 ---
     loginBtn.addEventListener('click', () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value;
-
-      if(!email || !password) {
-        alert('이메일과 비밀번호를 모두 입력해 주세요.');
-        return;
-      }
+      if(!email || !password) return alert('이메일과 비밀번호를 모두 입력해 주세요.');
 
       signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          statusBox.textContent = '로그인되었습니다.';
-          clearInputs();
-        })
-        .catch((error) => {
-          console.error(error);
-          alert('로그인 실패! 이메일 주소나 비밀번호를 다시 확인해 주세요.');
-        });
+        .then(() => { statusBox.textContent = '로그인되었습니다.'; clearInputs(); })
+        .catch((error) => alert('로그인 실패! 정보를 확인해 주세요.'));
     });
 
-    // --- 4. 로그아웃 ---
     logoutBtn.addEventListener('click', () => {
       signOut(auth).then(() => {
         audioPlayer.removeAttribute('src');
@@ -403,59 +199,47 @@
       });
     });
 
-    function clearInputs() {
-      emailInput.value = '';
-      passwordInput.value = '';
-    }
+    function clearInputs() { emailInput.value = ''; passwordInput.value = ''; }
 
-    // --- 5. 원소 선택 처리 ---
     elementButtons.forEach(btn => {
       btn.addEventListener('click', (e) => {
         elementButtons.forEach(b => b.classList.remove('active'));
-        
         const target = e.currentTarget;
         target.classList.add('active');
-        
-        selectedElement = {
-          symbol: target.dataset.symbol,
-          name: target.dataset.name
-        };
-
+        selectedElement = { symbol: target.dataset.symbol, name: target.dataset.name };
         statusBox.textContent = `선택된 원소: ${selectedElement.name} (${selectedElement.symbol})`;
         makeBtn.disabled = false;
         if (currentUser) saveBtn.disabled = false;
       });
     });
 
-    // --- 6. Firestore 데이터 실시간 연동 ---
+    // 🔗 Realtime Database 실시간 동기화 리스너 구문으로 변환
     function listenToStorage(uid) {
-      const docRef = doc(db, "users", uid);
-      unsubscribeStorage = onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists() && docSnap.data().elements) {
-          const list = docSnap.data().elements;
-          myStorageList.textContent = list.length > 0 ? list.join(', ') : '보관함이 비어있습니다.';
+      const userElementsRef = ref(db, 'users/' + uid + '/elements');
+      onValue(userElementsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data && Array.isArray(data)) {
+          myStorageList.textContent = data.join(', ');
         } else {
           myStorageList.textContent = '보관함이 비어있습니다.';
         }
       });
     }
 
+    // 🔗 Realtime Database 세팅용 저장 구문으로 변환
     saveBtn.addEventListener('click', async () => {
       if (!currentUser || !selectedElement) return;
 
-      const docRef = doc(db, "users", currentUser.uid);
+      const userElementsRef = ref(db, 'users/' + currentUser.uid + '/elements');
       try {
-        const docSnap = await getDoc(docRef);
-        let currentElements = [];
-        
-        if (docSnap.exists() && docSnap.data().elements) {
-          currentElements = docSnap.data().elements;
-        }
+        const snapshot = await get(userElementsRef);
+        let currentElements = snapshot.exists() ? snapshot.val() : [];
+        if (!Array.isArray(currentElements)) currentElements = [];
 
         const elementText = `${selectedElement.name}(${selectedElement.symbol})`;
         if (!currentElements.includes(elementText)) {
           currentElements.push(elementText);
-          await setDoc(docRef, { elements: currentElements }, { merge: true });
+          await set(userElementsRef, currentElements);
           statusBox.textContent = `⭐ ${selectedElement.name} 보관함 저장 완료!`;
         } else {
           statusBox.textContent = `ℹ️ 이미 저장된 원소입니다.`;
@@ -465,13 +249,10 @@
       }
     });
 
-    // --- 7. TTS 음성 가이드 생성 및 재생 요청 ---
     async function makeSpeech() {
       if (!selectedElement) return;
-
       const voice = voiceSelect.value;
       const speed = Number(speedInput.value || 1.0);
-
       const aiPrompt = `원소 '${selectedElement.name}(${selectedElement.symbol})'에 대한 정의와 우리 일상 속 쓰임새를 핵심만 아주 흥미롭게 딱 두 문장으로 설명해줘.`;
 
       try {
@@ -481,21 +262,14 @@
 
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
-          body: JSON.stringify({
-            type: 'tts',
-            text: aiPrompt,
-            model: 'tts-1',
-            voice: voice,
-            speed: speed
-          })
+          body: JSON.stringify({ type: 'tts', text: aiPrompt, model: 'tts-1', voice: voice, speed: speed })
         });
 
         const data = await response.json();
-
         if (data.error) throw new Error(data.error);
         if (!data.audioBase64) throw new Error('음성 데이터를 받지 못했습니다.');
 
-        aiResponseText.textContent = data.aiText || `${selectedElement.name}은 일상에서 유용하게 쓰이는 중요한 원소입니다. 아래 오디오를 통해 도슨트 가이드를 들어보세요!`;
+        aiResponseText.textContent = data.aiText || `${selectedElement.name} 안내용 오디오 브리핑이 준비되었습니다.`;
         resultTitle.textContent = `🤖 AI 도슨트 가이드 : ${selectedElement.name} (${selectedElement.symbol})`;
 
         const audioUrl = base64ToAudioUrl(data.audioBase64, 'audio/mpeg');
@@ -506,7 +280,6 @@
         resultBox.classList.remove('hidden');
         statusBox.textContent = '🔊 가이드 준비 완료!';
         audioPlayer.play().catch(() => console.log("자동재생 차단됨"));
-
       } catch (error) {
         console.error(error);
         statusBox.textContent = '요청 실패';
@@ -522,14 +295,11 @@
       for (let offset = 0; offset < byteCharacters.length; offset += 512) {
         const slice = byteCharacters.slice(offset, offset + 512);
         const byteNumbers = new Array(slice.length);
-        for (let i = 0; i < slice.length; i++) {
-          byteNumbers[i] = slice.charCodeAt(i);
-        }
+        for (let i = 0; i < slice.length; i++) { byteNumbers[i] = slice.charCodeAt(i); }
         const byteArray = new Uint8Array(byteNumbers);
         byteArrays.push(byteArray);
       }
-      const blob = new Blob(byteArrays, { type: mimeType });
-      return URL.createObjectURL(blob);
+      return URL.createObjectURL(new Blob(byteArrays, { type: mimeType }));
     }
 
     function makeFileName(symbol) {
