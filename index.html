@@ -254,36 +254,19 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 본인의 Firebase 환경 정보를 연결하는 부분입니다. 
-    // 본인 프로젝트의 실제 대시보드 앱 설정값으로 채워주시면 정상 인증 처리됩니다.
+    // 🔗 전달해주신 bigdabun 프로젝트의 실제 키 값들을 그대로 연동했습니다.
     const firebaseConfig = {
       apiKey: "AIzaSyD5G_j3cOFmE0Dhaqp5LpDROFZ2O29a59g",
-      authDomain: "bigdabun.firebaseapp.com",
-      databaseURL: "https://bigdabun-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "bigdabun",
-      storageBucket: "bigdabun.firebasestorage.app",
-      messagingSenderId: "393792537450",
-      appId: "1:393792537450:web:7f2a90296b69058f8b9b13",
-      measurementId: "G-ZDQPP6TYTE"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
-필요한 부분 코드:const firebaseConfig = {
-  apiKey: "AIzaSyD5G_j3cOFmE0Dhaqp5LpDROFZ2O29a59g",
-  authDomain: "bigdabun.firebaseapp.com",
-  databaseURL: "https://bigdabun-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "bigdabun",
-  storageBucket: "bigdabun.firebasestorage.app",
-  messagingSenderId: "393792537450",
-  appId: "1:393792537450:web:7f2a90296b69058f8b9b13",
-  measurementId: "G-ZDQPP6TYTE"
-
+      authDomain: "bigdabun.firebaseapp.com",
+      databaseURL: "https://bigdabun-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "bigdabun",
+      storageBucket: "bigdabun.firebasestorage.app",
+      messagingSenderId: "393792537450",
+      appId: "1:393792537450:web:7f2a90296b69058f8b9b13",
+      measurementId: "G-ZDQPP6TYTE"
     };
 
-    // 🔗 보내주신 코드에서 정확하게 추출하여 매핑한 주소입니다.
+    // 🔗 이전 코드에 담겨 있던 Apps Script 주소입니다.
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzvCeCidpIBm3Ez_AbmzTRrvzCkPa_7x-irAazDPzljPmuqjjHZOqXxfyS1vNh7tX1/exec';
 
     // Firebase 초기화
@@ -336,7 +319,10 @@ const analytics = getAnalytics(app);
 
     authBtn.addEventListener('click', () => {
       if (!currentUser) {
-        signInWithPopup(auth, provider).catch(err => alert('로그인 실패: ' + err.message));
+        signInWithPopup(auth, provider).catch(err => {
+          console.error(err);
+          alert('로그인 실패: ' + err.message + '\n\n※ 만약 에러가 난다면 Firebase 웹 콘솔에서 [Authentication] -> [Google 로그인] 기능이 활성화(Enable) 상태인지 꼭 확인해주세요!');
+        });
       } else {
         signOut(auth);
         audioPlayer.removeAttribute('src');
@@ -413,7 +399,6 @@ const analytics = getAnalytics(app);
         return;
       }
 
-      // Apps Script 연동용 프롬프트 스트링 조립
       const aiPrompt = `원소 '${selectedElement.name}(${selectedElement.symbol})'에 대한 정의와 우리 일상 속 유용한 쓰임새를 핵심만 아주 흥미롭고 재미있게 딱 두 문장으로 설명해줘.`;
 
       try {
@@ -421,7 +406,6 @@ const analytics = getAnalytics(app);
         resultBox.classList.add('hidden');
         statusBox.textContent = `🤖 AI 도슨트가 '${selectedElement.name}' 가이드를 작성하고 목소리를 입히는 중입니다...`;
 
-        // 제공해주신 APPS_SCRIPT_URL 경로로 동일하게 POST 요청 발송
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           body: JSON.stringify({
@@ -438,11 +422,9 @@ const analytics = getAnalytics(app);
         if (data.error) throw new Error(data.error);
         if (!data.audioBase64) throw new Error('음성 데이터를 받지 못했습니다.');
 
-        // Apps Script의 응답에 따른 분기 바인딩
         aiResponseText.textContent = data.aiText || `${selectedElement.name}은 우리 주변에서 흔히 볼 수 있으며 정말 흥미로운 성질을 가지고 있습니다. 아래 생성된 음성 브리핑을 재생해 자세히 알아보세요!`;
         resultTitle.textContent = `🤖 AI 도슨트 가이드 : ${selectedElement.name} (${selectedElement.symbol})`;
 
-        // 전달받은 base64 바이너리 데이터를 재생 가능한 Blob 오디오 객체로 변환
         const audioUrl = base64ToAudioUrl(data.audioBase64, 'audio/mpeg');
         audioPlayer.src = audioUrl;
         downloadLink.href = audioUrl;
@@ -451,7 +433,7 @@ const analytics = getAnalytics(app);
         resultBox.classList.remove('hidden');
         statusBox.textContent = '🔊 가이드 음성 준비 완료!';
         
-        audioPlayer.play().catch(() => console.log("자동 재생이 브라우저 정책으로 차단되었습니다."));
+        audioPlayer.play().catch(() => console.log("자동 재생이 차단되었습니다."));
 
       } catch (error) {
         console.error(error);
