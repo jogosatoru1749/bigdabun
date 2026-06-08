@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🔬 나만의 AI 원소 도슨트 (이메일 로그인)</title>
+  <title>🔬 나만의 AI 원소 도슨트 (이메일 전용)</title>
   <style>
     * { box-sizing: border-box; }
 
@@ -37,7 +37,7 @@
       font-size: 14px;
     }
 
-    /* 상단 로그인 섹션 고도화 */
+    /* 상단 로그인 세션 */
     .auth-section {
       background: #f1f3f5;
       padding: 18px;
@@ -51,7 +51,17 @@
       margin-bottom: 10px;
       flex-wrap: wrap;
     }
-    .auth-inputs input { flex: 1; min-width: 150px; }
+    .auth-inputs input { 
+      flex: 1; 
+      min-width: 150px; 
+      height: 44px;
+      padding: 0 12px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    .auth-inputs input:focus { border-color: #42a5f5; }
 
     .auth-status-bar {
       display: flex;
@@ -99,7 +109,7 @@
       margin-bottom: 14px;
     }
 
-    select, input {
+    select, input[type="number"] {
       height: 44px;
       padding: 0 12px;
       border: 1px solid #ddd;
@@ -108,7 +118,7 @@
       outline: none;
     }
 
-    select:focus, input:focus {
+    select:focus, input[type="number"]:focus {
       border-color: #42a5f5;
       box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
     }
@@ -214,7 +224,7 @@
 
     <div class="auth-section">
       <div id="auth-inputs-div" class="auth-inputs">
-        <input type="email" id="emailInput" placeholder="이메일 주소 입력" />
+        <input type="email" id="emailInput" placeholder="이메일 입력 (ex: test@test.com)" />
         <input type="password" id="passwordInput" placeholder="비밀번호 입력 (6자리 이상)" />
         <button id="loginBtn" class="login-btn">로그인</button>
         <button id="registerBtn" class="register-btn">회원가입</button>
@@ -272,11 +282,10 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    // 🔗 구글 팝업 대신 이메일 가입/로그인 함수(createUserWithEmailAndPassword, signInWithEmailAndPassword) 임포트
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 🔗 bigdabun 프로젝트 환경 설정값 유지
+    // bigdabun 프로젝트 환경 설정
     const firebaseConfig = {
       apiKey: "AIzaSyD5G_j3cOFmE0Dhaqp5LpDROFZ2O29a59g",
       authDomain: "bigdabun.firebaseapp.com",
@@ -322,20 +331,20 @@
     const downloadLink = document.getElementById('downloadLink');
     const myStorageList = document.getElementById('my-storage-list');
 
-    // --- 1. Firebase Authentication 상태 모니터링 ---
+    // --- 1. Firebase Authentication 상태 처리 ---
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
-        userInfo.textContent = `🟢 ${user.email} 계정으로 로그인됨`;
-        authInputsDiv.classList.add('hidden'); // 로그인 성공 시 입력창 숨김
-        logoutBtn.classList.remove('hidden');  // 로그아웃 버튼 보여줌
+        userInfo.textContent = `🟢 계정: ${user.email}`;
+        authInputsDiv.classList.add('hidden'); 
+        logoutBtn.classList.remove('hidden');  
         if(selectedElement) saveBtn.disabled = false;
         
         listenToStorage(user.uid);
       } else {
         currentUser = null;
         userInfo.textContent = '로그인 후 나만의 원소 보관함을 연동해보세요!';
-        authInputsDiv.classList.remove('hidden'); // 로그아웃 시 입력창 다시 보여줌
+        authInputsDiv.classList.remove('hidden'); 
         logoutBtn.classList.add('hidden');
         saveBtn.disabled = true;
         myStorageList.textContent = '로그인이 필요합니다.';
@@ -343,7 +352,7 @@
       }
     });
 
-    // --- 2. 이메일 회원가입 로직 ---
+    // --- 2. 이메일 회원가입 ---
     registerBtn.addEventListener('click', () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value;
@@ -354,17 +363,17 @@
       }
 
       createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          alert('회원가입 및 로그인에 성공했습니다!');
-          clearAuthInputs();
+        .then(() => {
+          alert('회원가입 완료 및 로그인 성공!');
+          clearInputs();
         })
         .catch((error) => {
           console.error(error);
-          alert('회원가입 실패: ' + error.message + '\n\n※ Firebase 콘솔에서 이메일/비밀번호 로그인이 활성화되어 있는지 확인해 주세요.');
+          alert('가입 실패! ' + error.message + '\n\n※ Firebase 웹 콘솔 내 Auth 메뉴에서 [이메일/비밀번호] 기능이 활성화 상태인지 확인해 주세요.');
         });
     });
 
-    // --- 3. 이메일 로그인 로직 ---
+    // --- 3. 이메일 로그인 ---
     loginBtn.addEventListener('click', () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value;
@@ -375,17 +384,17 @@
       }
 
       signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          statusBox.textContent = '로그인 성공!';
-          clearAuthInputs();
+        .then(() => {
+          statusBox.textContent = '로그인되었습니다.';
+          clearInputs();
         })
         .catch((error) => {
           console.error(error);
-          alert('로그인 실패: 이메일 또는 비밀번호를 확인해 주세요.\n(' + error.message + ')');
+          alert('로그인 실패! 이메일 주소나 비밀번호를 다시 확인해 주세요.');
         });
     });
 
-    // --- 4. 로그아웃 로직 ---
+    // --- 4. 로그아웃 ---
     logoutBtn.addEventListener('click', () => {
       signOut(auth).then(() => {
         audioPlayer.removeAttribute('src');
@@ -394,7 +403,7 @@
       });
     });
 
-    function clearAuthInputs() {
+    function clearInputs() {
       emailInput.value = '';
       passwordInput.value = '';
     }
@@ -412,13 +421,13 @@
           name: target.dataset.name
         };
 
-        statusBox.textContent = `선택된 원소: ${selectedElement.name} (${selectedElement.symbol}) - 아래 버튼을 눌러보세요.`;
+        statusBox.textContent = `선택된 원소: ${selectedElement.name} (${selectedElement.symbol})`;
         makeBtn.disabled = false;
         if (currentUser) saveBtn.disabled = false;
       });
     });
 
-    // --- 6. Firestore 데이터 실시간 연동 (저장 및 조회) ---
+    // --- 6. Firestore 데이터 실시간 연동 ---
     function listenToStorage(uid) {
       const docRef = doc(db, "users", uid);
       unsubscribeStorage = onSnapshot(docRef, (docSnap) => {
@@ -447,33 +456,28 @@
         if (!currentElements.includes(elementText)) {
           currentElements.push(elementText);
           await setDoc(docRef, { elements: currentElements }, { merge: true });
-          statusBox.textContent = `⭐ ${selectedElement.name}이(가) 보관함에 안전하게 저장되었습니다!`;
+          statusBox.textContent = `⭐ ${selectedElement.name} 보관함 저장 완료!`;
         } else {
-          statusBox.textContent = `ℹ️ 이미 보관함에 존재하는 원소입니다.`;
+          statusBox.textContent = `ℹ️ 이미 저장된 원소입니다.`;
         }
       } catch (error) {
         alert('저장 실패: ' + error.message);
       }
     });
 
-    // --- 7. Google Apps Script 서버를 통한 AI 가이드 생성 & TTS 요청 ---
+    // --- 7. TTS 음성 가이드 생성 및 재생 요청 ---
     async function makeSpeech() {
       if (!selectedElement) return;
 
       const voice = voiceSelect.value;
       const speed = Number(speedInput.value || 1.0);
 
-      if (speed < 0.25 || speed > 4.0) {
-        alert('속도는 0.25부터 4.0 사이로 입력해주세요.');
-        return;
-      }
-
-      const aiPrompt = `원소 '${selectedElement.name}(${selectedElement.symbol})'에 대한 정의와 우리 일상 속 유용한 쓰임새를 핵심만 아주 흥미롭고 재미있게 딱 두 문장으로 설명해줘.`;
+      const aiPrompt = `원소 '${selectedElement.name}(${selectedElement.symbol})'에 대한 정의와 우리 일상 속 쓰임새를 핵심만 아주 흥미롭게 딱 두 문장으로 설명해줘.`;
 
       try {
         setLoading(true);
         resultBox.classList.add('hidden');
-        statusBox.textContent = `🤖 AI 도슨트가 '${selectedElement.name}' 가이드를 작성하고 목소리를 입히는 중입니다...`;
+        statusBox.textContent = `🤖 AI 도슨트가 가이드를 생성하는 중입니다...`;
 
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
@@ -491,7 +495,7 @@
         if (data.error) throw new Error(data.error);
         if (!data.audioBase64) throw new Error('음성 데이터를 받지 못했습니다.');
 
-        aiResponseText.textContent = data.aiText || `${selectedElement.name}은 우리 주변에서 흔히 볼 수 있으며 정말 흥미로운 성질을 가지고 있습니다. 아래 생성된 음성 브리핑을 재생해 자세히 알아보세요!`;
+        aiResponseText.textContent = data.aiText || `${selectedElement.name}은 일상에서 유용하게 쓰이는 중요한 원소입니다. 아래 오디오를 통해 도슨트 가이드를 들어보세요!`;
         resultTitle.textContent = `🤖 AI 도슨트 가이드 : ${selectedElement.name} (${selectedElement.symbol})`;
 
         const audioUrl = base64ToAudioUrl(data.audioBase64, 'audio/mpeg');
@@ -500,46 +504,37 @@
         downloadLink.download = makeFileName(selectedElement.symbol);
         
         resultBox.classList.remove('hidden');
-        statusBox.textContent = '🔊 가이드 음성 준비 완료!';
-        
-        audioPlayer.play().catch(() => console.log("자동 재생이 차단되었습니다."));
+        statusBox.textContent = '🔊 가이드 준비 완료!';
+        audioPlayer.play().catch(() => console.log("자동재생 차단됨"));
 
       } catch (error) {
         console.error(error);
         statusBox.textContent = '요청 실패';
-        alert('오류가 발생했습니다.\n\n' + error.message);
+        alert('오류 발생: ' + error.message);
       } finally {
         setLoading(false);
       }
     }
 
-    makeBtn.addEventListener('click', makeSpeech);
-
-    // --- 8. 유틸리티 함수들 ---
     function base64ToAudioUrl(base64, mimeType) {
       const byteCharacters = atob(base64);
       const byteArrays = [];
-
       for (let offset = 0; offset < byteCharacters.length; offset += 512) {
         const slice = byteCharacters.slice(offset, offset + 512);
         const byteNumbers = new Array(slice.length);
-
         for (let i = 0; i < slice.length; i++) {
           byteNumbers[i] = slice.charCodeAt(i);
         }
-
         const byteArray = new Uint8Array(byteNumbers);
         byteArrays.push(byteArray);
       }
-
       const blob = new Blob(byteArrays, { type: mimeType });
       return URL.createObjectURL(blob);
     }
 
     function makeFileName(symbol) {
       const now = new Date();
-      const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-      return `AI-Docent-${symbol}-${dateStr}.mp3`;
+      return `AI-Docent-${symbol}-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.mp3`;
     }
 
     function setLoading(isLoading) {
