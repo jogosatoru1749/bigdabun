@@ -257,7 +257,7 @@
     // 본인의 Firebase 환경 정보를 연결하는 부분입니다. 
     // 본인 프로젝트의 실제 대시보드 앱 설정값으로 채워주시면 정상 인증 처리됩니다.
     const firebaseConfig = {
-      apiKey: "AIzaSyD5G_j3cOFmE0Dhaqp5LpDROFZ2O29a59g",
+      apiKey: "AIzaSyD5G_j3cOFmE0Dhaqp5LpDROFZ2O29a59g",
       authDomain: "bigdabun.firebaseapp.com",
       databaseURL: "https://bigdabun-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "bigdabun",
@@ -265,6 +265,22 @@
       messagingSenderId: "393792537450",
       appId: "1:393792537450:web:7f2a90296b69058f8b9b13",
       measurementId: "G-ZDQPP6TYTE"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+필요한 부분 코드:const firebaseConfig = {
+  apiKey: "AIzaSyD5G_j3cOFmE0Dhaqp5LpDROFZ2O29a59g",
+  authDomain: "bigdabun.firebaseapp.com",
+  databaseURL: "https://bigdabun-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "bigdabun",
+  storageBucket: "bigdabun.firebasestorage.app",
+  messagingSenderId: "393792537450",
+  appId: "1:393792537450:web:7f2a90296b69058f8b9b13",
+  measurementId: "G-ZDQPP6TYTE"
+
     };
 
     // 🔗 보내주신 코드에서 정확하게 추출하여 매핑한 주소입니다.
