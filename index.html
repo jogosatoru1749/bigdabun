@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🔬 나만의 AI 원소 도슨트 (Realtime DB 버전)</title>
+  <title>🔬 나만의 AI 원소 도슨트 (Realtime DB & TTS 연동)</title>
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100vh; background: linear-gradient(135deg, #e3f2fd, #fce4ec); font-family: Arial, sans-serif; color: #333; }
@@ -49,6 +49,7 @@
     <h1>🔬 나만의 AI 원소 도슨트</h1>
     <div class="subtitle">원소를 선택하면 AI가 설명해주고 음성(mp3)으로 들려줍니다</div>
 
+    <!-- 1. 계정 인증 섹션 -->
     <div class="auth-section">
       <div id="auth-inputs-div" class="auth-inputs">
         <input type="email" id="emailInput" placeholder="이메일 입력 (ex: test@test.com)" />
@@ -62,6 +63,7 @@
       </div>
     </div>
 
+    <!-- 2. 간이 주기율표 원소 선택 그리드 -->
     <div class="label">원소 선택</div>
     <div class="element-grid">
       <button class="btn-element" data-symbol="H" data-name="수소">H<span>수소</span></button>
@@ -71,6 +73,7 @@
       <button class="btn-element" data-symbol="Au" data-name="금">Au<span>금</span></button>
     </div>
 
+    <!-- 3. 목소리 종류 및 배속 옵션 -->
     <div class="option-box">
       <select id="voiceSelect">
         <option value="alloy">익숙한 목소리 (alloy)</option>
@@ -83,6 +86,7 @@
       <input id="speedInput" type="number" min="0.25" max="4.0" step="0.05" value="1.0" placeholder="재생 속도" />
     </div>
 
+    <!-- 4. 액션 제어 패널 -->
     <div class="button-row">
       <button class="save-btn" id="saveBtn" disabled>⭐ 내 보관함에 저장</button>
       <button class="make-btn" id="makeBtn" disabled>🤖 AI 도슨트 설명 듣기</button>
@@ -90,6 +94,7 @@
 
     <div id="status" class="status">원소를 먼저 선택해주세요.</div>
 
+    <!-- 5. 가이드 브리핑 결과 영역 -->
     <div id="resultBox" class="result-box hidden">
       <div class="label" id="resultTitle">🤖 AI 도슨트 가이드</div>
       <div id="aiResponseText" class="ai-text-box"></div>
@@ -99,6 +104,7 @@
       </div>
     </div>
 
+    <!-- 6. 클라우드 연동 실시간 저장소 목록 리스트 -->
     <div class="storage-box">
       <div class="label">⭐ 내가 저장한 원소 목록 (클라우드 동기화)</div>
       <div id="my-storage-list">로그인이 필요합니다.</div>
@@ -108,7 +114,6 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    // 🔗 Realtime Database 모듈로 교체 및 바인딩
     import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -122,15 +127,15 @@
       measurementId: "G-ZDQPP6TYTE"
     };
 
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzvCeCidpIBm3Ez_AbmzTRrvzCkPa_7x-irAazDPzljPmuqjjHZOqXxfyS1vNh7tX1/exec';
+    // Google Apps Script 웹앱 URL 배포 주소
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwifylWu5wD_tr4GOCtOQ0Lnn4ls3S4xkmxaZHuz5at4XDvixOdIa4yTrdiEybAFrRmKQ/exec';
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getDatabase(app); // Realtime DB 초기화
+    const db = getDatabase(app);
 
     let currentUser = null;
     let selectedElement = null;
-    let dbRefInstance = null;
 
     const authInputsDiv = document.getElementById('auth-inputs-div');
     const emailInput = document.getElementById('emailInput');
@@ -159,7 +164,6 @@
         authInputsDiv.classList.add('hidden'); 
         logoutBtn.classList.remove('hidden');  
         if(selectedElement) saveBtn.disabled = false;
-        
         listenToStorage(user.uid);
       } else {
         currentUser = null;
@@ -175,7 +179,6 @@
       const email = emailInput.value.trim();
       const password = passwordInput.value;
       if(!email || !password) return alert('이메일과 비밀번호를 모두 입력해 주세요.');
-
       createUserWithEmailAndPassword(auth, email, password)
         .then(() => { alert('회원가입 완료 및 로그인 성공!'); clearInputs(); })
         .catch((error) => alert('가입 실패! ' + error.message));
@@ -185,7 +188,6 @@
       const email = emailInput.value.trim();
       const password = passwordInput.value;
       if(!email || !password) return alert('이메일과 비밀번호를 모두 입력해 주세요.');
-
       signInWithEmailAndPassword(auth, email, password)
         .then(() => { statusBox.textContent = '로그인되었습니다.'; clearInputs(); })
         .catch((error) => alert('로그인 실패! 정보를 확인해 주세요.'));
@@ -213,7 +215,6 @@
       });
     });
 
-    // 🔗 Realtime Database 실시간 동기화 리스너 구문으로 변환
     function listenToStorage(uid) {
       const userElementsRef = ref(db, 'users/' + uid + '/elements');
       onValue(userElementsRef, (snapshot) => {
@@ -226,10 +227,8 @@
       });
     }
 
-    // 🔗 Realtime Database 세팅용 저장 구문으로 변환
     saveBtn.addEventListener('click', async () => {
       if (!currentUser || !selectedElement) return;
-
       const userElementsRef = ref(db, 'users/' + currentUser.uid + '/elements');
       try {
         const snapshot = await get(userElementsRef);
@@ -249,45 +248,61 @@
       }
     });
 
+    // 🤖 AI 텍스트 생성 및 TTS 통합 처리 엔진
     async function makeSpeech() {
       if (!selectedElement) return;
       const voice = voiceSelect.value;
       const speed = Number(speedInput.value || 1.0);
-      const aiPrompt = `원소 '${selectedElement.name}(${selectedElement.symbol})'에 대한 정의와 우리 일상 속 쓰임새를 핵심만 아주 흥미롭게 딱 두 문장으로 설명해줘.`;
+      
+      // OpenAI API 규격 맞춤 인스트럭션 프롬프트
+      const aiPrompt = `원소 '${selectedElement.name}(${selectedElement.symbol})'에 대한 정의와 우리 일상 속 흔한 쓰임새를 아주 흥미롭고 재미있게 딱 두 문장으로 친절히 설명해줘.`;
 
       try {
         setLoading(true);
         resultBox.classList.add('hidden');
-        statusBox.textContent = `🤖 AI 도슨트가 가이드를 생성하는 중입니다...`;
+        statusBox.textContent = `🤖 AI 도슨트가 가이드와 TTS 음성을 생성하는 중입니다...`;
 
+        // 구글 앱스 스크립트로 페이로드 전송
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
-          body: JSON.stringify({ type: 'tts', text: aiPrompt, model: 'tts-1', voice: voice, speed: speed })
+          body: JSON.stringify({
+            type: 'tts',
+            text: aiPrompt,
+            model: 'tts-1',
+            voice: voice,
+            speed: speed
+          })
         });
 
         const data = await response.json();
         if (data.error) throw new Error(data.error);
-        if (!data.audioBase64) throw new Error('음성 데이터를 받지 못했습니다.');
+        if (!data.audioBase64) throw new Error('서버로부터 음성 바이너리 데이터를 받지 못했습니다.');
 
-        aiResponseText.textContent = data.aiText || `${selectedElement.name} 안내용 오디오 브리핑이 준비되었습니다.`;
+        // 텍스트 출력 바인딩
+        aiResponseText.textContent = data.aiText || `${selectedElement.name}에 대한 AI 분석이 완료되었습니다. 아래 가이드를 들어보세요.`;
         resultTitle.textContent = `🤖 AI 도슨트 가이드 : ${selectedElement.name} (${selectedElement.symbol})`;
 
+        // 받아온 Base64 바이너리를 브라우저가 다이렉트로 읽을 수 있도록 변환 후 할당
         const audioUrl = base64ToAudioUrl(data.audioBase64, 'audio/mpeg');
         audioPlayer.src = audioUrl;
         downloadLink.href = audioUrl;
         downloadLink.download = makeFileName(selectedElement.symbol);
         
         resultBox.classList.remove('hidden');
-        statusBox.textContent = '🔊 가이드 준비 완료!';
-        audioPlayer.play().catch(() => console.log("자동재생 차단됨"));
+        statusBox.textContent = '🔊 가이드 브리핑 준비 완료!';
+        audioPlayer.play().catch(() => console.log("자동재생 인터랙션 제한 우회 차단됨"));
+
       } catch (error) {
         console.error(error);
         statusBox.textContent = '요청 실패';
-        alert('오류 발생: ' + error.message);
+        alert('AI 인프라 연동 오류: ' + error.message + '\n\n※ Apps Script의 배포 엑세스 권한 설정이 [모든 사람]으로 완전 개방되었는지 재차 확인해보세요!');
       } finally {
         setLoading(false);
       }
     }
+
+    // 🚨 수정한 부분: 버튼을 누를 때 위 함수가 실제로 발동하도록 바인딩 누락 해결
+    makeBtn.addEventListener('click', makeSpeech);
 
     function base64ToAudioUrl(base64, mimeType) {
       const byteCharacters = atob(base64);
